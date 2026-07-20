@@ -1,0 +1,52 @@
+---
+schema:
+  schema_id: ipa
+  name: IPA音标
+  version: "0.1"
+  author:
+    - 用户自定义方案
+  description: |
+    基于"主动发声部位+被动发声部位"字母组合的IPA国际音标输入方案。
+    候选框选词才会打出IPA符号，直接回车只上屏原始拉丁字母。
+
+switches:
+  - name: ascii_mode
+    reset: 0
+    states: [ IPA, 西文 ]
+
+engine:
+  processors:
+    - ascii_composer
+    - recognizer
+    - key_binder
+    - speller
+    - selector
+    - navigator
+    - express_editor
+  segmentors:
+    - ascii_segmentor
+    - matcher
+    - abc_segmentor
+    - fallback_segmentor
+  translators:
+    - table_translator
+
+speller:
+  alphabet: "!\"&'()+-./012345:;=?EGHLORVY[\\]^`abcdefghijklmnopqrstuvwxyz|~"
+  delimiter: " "
+  algebra: []
+
+translator:
+  dictionary: ipa
+  enable_completion: true
+  enable_sentence: false
+  max_phrase_length: 1
+  # 去掉"还差几个键能选出这一项"提示前固定的 ~ 前缀，只保留剩余按键本身
+  comment_format:
+    - "xform/^~//"
+
+# 不启用标点转换：本方案里 ~ ? ! ( ) [ ] = + 等符号本身就是有意义的编码字符，
+# 一旦交给 punctuator 会被抢先转换成中文标点，导致这些编码打不出来。
+punctuator:
+  half_shape: {}
+  full_shape: {}

@@ -1,0 +1,525 @@
+<title>IPA 编码查询表</title>
+<style>
+  /* committed to a single bright light theme regardless of system/viewer
+     dark-mode preference — the user asked for the page to stay light */
+  :root, :root[data-theme="dark"], :root[data-theme="light"] {
+    --bg: #f7f6f1;
+    --surface: #ffffff;
+    --ink: #1c1912;
+    --ink-dim: #6b6656;
+    --ink-faint: #99937f;
+    --sym-ink: #0a0805;
+    --accent: #4c7360;
+    --accent-ink: #ffffff;
+    --chip-bg: #e6efe8;
+    --chip-ink: #2b4636;
+    --border: #e3ded0;
+    --shade: #edeade;
+    --head-bg: #e7e2d1;
+    --mono: ui-monospace, "Cascadia Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    --serif: "Times New Roman", Times, "Noto Serif", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0 24px;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 24px 18px 72px; zoom: 1.55; }
+
+  header.top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  h1.title {
+    font-family: var(--serif);
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: 0.02em;
+  }
+  h1.title .cn { font-family: var(--sans); font-size: 13px; font-weight: 600; color: var(--ink-faint); display: block; margin-top: 2px; letter-spacing: 0.08em; }
+
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 9px 12px;
+    min-width: 280px;
+    flex: 1;
+    max-width: 420px;
+  }
+  .search-box svg { flex: none; opacity: 0.55; }
+  #q {
+    flex: 1; border: none; outline: none; background: transparent;
+    color: var(--ink); font-family: var(--mono); font-size: 15px;
+  }
+  #q::placeholder { color: var(--ink-faint); font-family: var(--sans); font-size: 13px; }
+  #q:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  #matchcount { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); white-space: nowrap; }
+
+  h2.sec {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--ink-dim);
+    margin: 26px 0 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  p.note { font-size: 11.5px; color: var(--ink-faint); margin: -2px 0 10px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; align-items: start; }
+  @media (max-width: 860px) { .two-col { grid-template-columns: 1fr; } }
+
+  .scrollx { overflow-x: auto; }
+
+  table.chart {
+    border-collapse: collapse;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    width: 100%;
+  }
+  table.chart th {
+    font-family: var(--sans);
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--ink-dim);
+    background: var(--head-bg);
+    padding: 6px 3px;
+    border-left: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  table.chart th:first-child { border-left: none; }
+  table.chart td {
+    border-left: 1px solid var(--border);
+    border-top: 1px solid var(--border);
+    padding: 4px 2px;
+    text-align: center;
+    vertical-align: middle;
+    min-width: 44px;
+  }
+  table.chart td.rowhead {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-dim);
+    padding-left: 8px;
+    white-space: nowrap;
+    border-left: none;
+  }
+  table.chart td.shade { background: var(--shade); }
+  table.chart td.blank { background: none; }
+
+  .cell {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.15;
+    padding: 2px 3px;
+    border-radius: 4px;
+    transition: opacity 120ms ease, background-color 120ms ease;
+  }
+  .cell .g-sym { font-family: var(--serif); font-size: 17px; color: var(--sym-ink); font-weight: 600; }
+  .cell .g-code { font-family: var(--mono); font-size: 9px; color: var(--chip-ink); background: var(--chip-bg); border-radius: 3px; padding: 0 3px; margin-top: 1px; }
+  .cell.hit { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+  .dim .cell { opacity: 0.18; }
+
+  /* label-grid tables: other symbols / diacritics */
+  table.labelgrid { table-layout: fixed; }
+  table.labelgrid td { width: 33.34%; padding: 6px 8px; vertical-align: top; text-align: left; min-width: 0; }
+  table.labelgrid .lbl { font-size: 11px; color: var(--ink-dim); line-height: 1.3; min-height: 2.6em; }
+  table.labelgrid .cell { align-items: center; flex-direction: row; gap: 6px; margin-top: 3px; }
+  table.labelgrid .g-sym { font-size: 18px; min-width: 20px; text-align: center; }
+
+  ul.supra {
+    list-style: none; margin: 0; padding: 0;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+  }
+  ul.supra li {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 10px; border-top: 1px solid var(--border);
+  }
+  ul.supra li:first-child { border-top: none; }
+  ul.supra .g-sym { font-family: var(--serif); font-size: 19px; min-width: 26px; text-align: center; }
+  ul.supra .lbl { font-size: 12px; color: var(--ink-dim); flex: 1; }
+  ul.supra .g-code { font-family: var(--mono); font-size: 10px; color: var(--chip-ink); background: var(--chip-bg); border-radius: 3px; padding: 1px 5px; }
+  ul.supra li.na .g-code { color: var(--ink-faint); background: transparent; font-style: italic; }
+  ul.supra li.dim { opacity: 0.18; }
+  ul.supra li.hit { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+
+  /* vowel chart */
+  .vowel-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px; }
+  svg.vowel { width: 100%; height: auto; display: block; }
+  .v-sym { font-family: var(--serif); font-size: 15px; fill: var(--sym-ink); font-weight: 600; }
+  .v-code { font-family: var(--mono); font-size: 8px; fill: var(--chip-ink); }
+  .v-line { stroke: var(--border); stroke-width: 1.3; fill: none; }
+  .v-axis { font-family: var(--sans); font-size: 10.5px; font-weight: 700; fill: var(--ink-dim); }
+  .v-dot { fill: var(--accent); }
+  .v-cell.dim { opacity: 0.16; }
+  .v-cell.hit .v-sym { fill: var(--accent); font-weight: 700; }
+
+  ::selection { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+
+  /* hover magnifier */
+  #magnifier {
+    position: fixed;
+    left: 0; top: 0;
+    z-index: 999;
+    pointer-events: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 16px 32px rgba(0,0,0,0.16), 0 4px 10px rgba(0,0,0,0.10);
+    padding: 16px 22px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    opacity: 0;
+    transform-origin: 50% 100%;
+    transform: scale(0.85);
+    transition: opacity 110ms ease, transform 110ms ease;
+    will-change: transform, opacity;
+  }
+  #magnifier.show { opacity: 1; transform: scale(1); }
+  #magnifier.below { transform-origin: 50% 0%; }
+  #magnifier .m-sym { font-family: var(--serif); font-size: 60px; line-height: 1; color: var(--ink); }
+  #magnifier .m-code { font-family: var(--mono); font-size: 13px; color: var(--chip-ink); background: var(--chip-bg); padding: 3px 10px; border-radius: 6px; margin-top: 8px; }
+  #magnifier .m-label { font-size: 11px; color: var(--ink-faint); margin-top: 5px; max-width: 180px; text-align: center; line-height: 1.4; }
+
+  [data-sym] { cursor: default; }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1 class="title">IPA<span class="cn">国际音标 编码查询表</span></h1>
+    <div class="search-box">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.4"/>
+        <path d="M11 11L14.5 14.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+      <input id="q" type="text" placeholder="按符号或编码搜索，如 θ 或 sh" autocomplete="off" autofocus />
+      <span id="matchcount"></span>
+    </div>
+  </header>
+
+  <h2 class="sec">辅音（肺部气流）</h2>
+  <p class="note">格内符号下方为对应输入编码；左侧为清音，右侧为浊音；灰色格为发不出的组合。</p>
+  <div class="scrollx"><table class="chart" id="t-pulmonic"></table></div>
+
+  <div class="two-col">
+    <div>
+      <h2 class="sec">辅音（非肺部气流）</h2>
+      <div class="scrollx"><table class="chart" id="t-nonpulmonic"></table></div>
+
+      <h2 class="sec">其他符号</h2>
+      <div class="scrollx"><table class="chart labelgrid" id="t-other"></table></div>
+
+      <h2 class="sec">附加符号</h2>
+      <div class="scrollx"><table class="chart labelgrid" id="t-diacritics"></table></div>
+    </div>
+
+    <div>
+      <h2 class="sec">元音</h2>
+      <div class="vowel-card"><svg class="vowel" id="vowel-svg" viewBox="0 0 380 355" xmlns="http://www.w3.org/2000/svg"></svg></div>
+
+      <h2 class="sec">超音段符号</h2>
+      <ul class="supra" id="t-supra"></ul>
+
+      <h2 class="sec">声调与词重音</h2>
+      <div class="scrollx"><table class="chart" id="t-tones"></table></div>
+    </div>
+  </div>
+</div>
+
+<div id="magnifier">
+  <span class="m-sym" id="m-sym"></span>
+  <span class="m-code" id="m-code"></span>
+  <span class="m-label" id="m-label"></span>
+</div>
+
+<script>
+  const D = {"places": ["双唇音", "唇齿音", "齿音", "龈音", "龈后音", "卷舌音", "硬腭音", "软腭音", "小舌音", "咽音", "声门音"], "manners": ["爆发音", "鼻音", "颤音", "拍音或闪音", "擦音", "边擦音", "近音", "边近音"], "airstreams": ["吸着音", "内爆音", "挤气音"], "fbness": ["前", "央", "后"], "height": ["狭", "半狭", "半广", "广"], "imp": [[20, 1], [22, 1], [19, 2], [20, 2], [21, 2], [22, 2], [15, 3], [16, 3], [21, 3], [22, 3], [15, 4], [16, 4], [21, 4], [22, 4], [1, 6], [2, 6], [3, 6], [4, 6], [19, 6], [20, 6], [21, 6], [22, 6], [21, 7], [22, 7], [1, 8], [2, 8], [3, 8], [4, 8], [19, 8], [20, 8], [21, 8], [22, 8]], "pulmonic": [{"sid": 1, "symbol": "p", "descr": "VOICELESS BILABIAL PLOSIVE", "descr_short": null, "t_type": 0, "col": 1, "row": 1, "u_no": "0070", "codes": ["p", "pm"]}, {"sid": 2, "symbol": "b", "descr": "VOICED BILABIAL PLOSIVE", "descr_short": null, "t_type": 0, "col": 2, "row": 1, "u_no": "0062", "codes": ["b", "bm"]}, {"sid": 3, "symbol": "t", "descr": "VOICELESS DENTAL/ALVEOLAR PLOSIVE", "descr_short": null, "t_type": 0, "col": 7, "row": 1, "u_no": "0074", "codes": ["t", "tt", "pt"]}, {"sid": 4, "symbol": "d", "descr": "VOICED DENTAL/ALVEOLAR PLOSIVE", "descr_short": null, "t_type": 0, "col": 8, "row": 1, "u_no": "0064", "codes": ["d", "dt", "bt"]}, {"sid": 5, "symbol": "ʈ", "descr": "VOICELESS RETROFLEX PLOSIVE", "descr_short": null, "t_type": 0, "col": 11, "row": 1, "u_no": "0288", "codes": ["tr", "pr"]}, {"sid": 6, "symbol": "ɖ", "descr": "VOICED RETROFLEX PLOSIVE", "descr_short": null, "t_type": 0, "col": 12, "row": 1, "u_no": "0256", "codes": ["dr", "br"]}, {"sid": 7, "symbol": "c", "descr": "VOICELESS PALATAL PLOSIVE", "descr_short": null, "t_type": 0, "col": 13, "row": 1, "u_no": "0063", "codes": ["c", "tc", "pc"]}, {"sid": 8, "symbol": "ɟ", "descr": "VOICED PALATAL PLOSIVE", "descr_short": null, "t_type": 0, "col": 14, "row": 1, "u_no": "025F", "codes": ["bc", "fr", "dc", "fc"]}, {"sid": 9, "symbol": "k", "descr": "VOICELESS VELAR PLOSIVE", "descr_short": null, "t_type": 0, "col": 15, "row": 1, "u_no": "006B", "codes": ["k", "tk", "pk"]}, {"sid": 10, "symbol": "ɡ", "descr": "VOICED VELAR PLOSIVE", "descr_short": null, "t_type": 0, "col": 16, "row": 1, "u_no": "0261", "codes": ["g", "dg", "bg"]}, {"sid": 11, "symbol": "q", "descr": "VOICELESS UVULAR PLOSIVE", "descr_short": null, "t_type": 0, "col": 17, "row": 1, "u_no": "0071", "codes": ["q", "pq", "tq"]}, {"sid": 12, "symbol": "ɢ", "descr": "VOICED UVULAR PLOSIVE", "descr_short": null, "t_type": 0, "col": 18, "row": 1, "u_no": "0262", "codes": ["bq", "dq"]}, {"sid": 13, "symbol": "ʔ", "descr": "GLOTTAL PLOSIVE", "descr_short": null, "t_type": 0, "col": 21, "row": 1, "u_no": "0294", "codes": ["?", "th", "dh", "ph", "bh"]}, {"sid": 14, "symbol": "m", "descr": "VOICED BILABIAL NASAL", "descr_short": null, "t_type": 0, "col": 2, "row": 2, "u_no": "006D", "codes": ["m", "mm", "mp", "mb"]}, {"sid": 15, "symbol": "ɱ", "descr": "VOICED LABIODENTAL NASAL", "descr_short": null, "t_type": 0, "col": 4, "row": 2, "u_no": "0271", "codes": ["mv"]}, {"sid": 16, "symbol": "n", "descr": "VOICED DENTAL/ALVEOLAR NASAL", "descr_short": null, "t_type": 0, "col": 8, "row": 2, "u_no": "006E", "codes": ["n", "nt", "nd"]}, {"sid": 17, "symbol": "ɳ", "descr": "VOICED RETROFLEX NASAL", "descr_short": null, "t_type": 0, "col": 12, "row": 2, "u_no": "0273", "codes": ["nr"]}, {"sid": 18, "symbol": "ɲ", "descr": "VOICED PALATAL NASAL", "descr_short": null, "t_type": 0, "col": 14, "row": 2, "u_no": "0272", "codes": ["nc", "rn", "jn"]}, {"sid": 19, "symbol": "ŋ", "descr": "VOICED VELAR NASAL", "descr_short": null, "t_type": 0, "col": 16, "row": 2, "u_no": "014B", "codes": ["ng", "nk", "nj"]}, {"sid": 20, "symbol": "ɴ", "descr": "VOICED UVULAR NASAL", "descr_short": null, "t_type": 0, "col": 18, "row": 2, "u_no": "0274", "codes": ["nq"]}, {"sid": 21, "symbol": "ʙ", "descr": "VOICED BILABIAL TRILL", "descr_short": null, "t_type": 0, "col": 2, "row": 3, "u_no": "0299", "codes": ["rp", "rb", "rm"]}, {"sid": 22, "symbol": "r", "descr": "VOICED DENTAL/ALVEOLAR TRILL", "descr_short": null, "t_type": 0, "col": 8, "row": 3, "u_no": "0072", "codes": ["r", "rt", "rd"]}, {"sid": 23, "symbol": "ʀ", "descr": "VOICED UVULAR TRILL", "descr_short": null, "t_type": 0, "col": 18, "row": 3, "u_no": "0280", "codes": ["rq"]}, {"sid": 24, "symbol": "ⱱ", "descr": "VOICED LABIODENTAL FLAP", "descr_short": null, "t_type": 0, "col": 4, "row": 4, "u_no": "2C71", "codes": ["vr", "vR", "vV", "vv"]}, {"sid": 25, "symbol": "ɾ", "descr": "VOICED DENTAL/ALVEOLAR TAP", "descr_short": null, "t_type": 0, "col": 8, "row": 4, "u_no": "027E", "codes": ["rV", "rR"]}, {"sid": 26, "symbol": "ɽ", "descr": "VOICED RETROFLEX FLAP", "descr_short": null, "t_type": 0, "col": 12, "row": 4, "u_no": "027D", "codes": ["rr"]}, {"sid": 27, "symbol": "ɸ", "descr": "VOICELESS BILABIAL FRICATIVE", "descr_short": null, "t_type": 0, "col": 1, "row": 5, "u_no": "0278", "codes": ["sp", "sm", "sb"]}, {"sid": 28, "symbol": "β", "descr": "VOICED BILABIAL FRICATIVE", "descr_short": null, "t_type": 0, "col": 2, "row": 5, "u_no": "03B2", "codes": ["zb", "zm"]}, {"sid": 29, "symbol": "f", "descr": "VOICELESS LABIODENTAL FRICATIVE", "descr_short": null, "t_type": 0, "col": 3, "row": 5, "u_no": "0066", "codes": ["f", "fv", "sv"]}, {"sid": 30, "symbol": "v", "descr": "VOICED LABIODENTAL FRICATIVE", "descr_short": null, "t_type": 0, "col": 4, "row": 5, "u_no": "0076", "codes": ["v", "zv"]}, {"sid": 31, "symbol": "θ", "descr": "VOICELESS DENTAL FRICATIVE", "descr_short": null, "t_type": 0, "col": 5, "row": 5, "u_no": "03B8", "codes": ["st", "sv"]}, {"sid": 32, "symbol": "ð", "descr": "VOICED DENTAL FRICATIVE", "descr_short": null, "t_type": 0, "col": 6, "row": 5, "u_no": "00F0", "codes": ["zd", "zv"]}, {"sid": 33, "symbol": "s", "descr": "VOICELESS ALVEOLAR FRICATIVE", "descr_short": null, "t_type": 0, "col": 7, "row": 5, "u_no": "0073", "codes": ["s"]}, {"sid": 34, "symbol": "z", "descr": "VOICED ALVEOLAR FRICATIVE", "descr_short": null, "t_type": 0, "col": 8, "row": 5, "u_no": "007A", "codes": ["z"]}, {"sid": 35, "symbol": "ʃ", "descr": "VOICELESS POSTALVEOLAR FRICATIVE", "descr_short": null, "t_type": 0, "col": 9, "row": 5, "u_no": "0283", "codes": ["sh", "st"]}, {"sid": 36, "symbol": "ʒ", "descr": "VOICED POSTALVEOLAR FRICATIVE", "descr_short": null, "t_type": 0, "col": 10, "row": 5, "u_no": "0292", "codes": ["zh", "zd"]}, {"sid": 37, "symbol": "ʂ", "descr": "VOICELESS RETROFLEX FRICATIVE", "descr_short": null, "t_type": 0, "col": 11, "row": 5, "u_no": "0282", "codes": ["sr"]}, {"sid": 38, "symbol": "ʐ", "descr": "VOICED RETROFLEX FRICATIVE", "descr_short": null, "t_type": 0, "col": 12, "row": 5, "u_no": "0290", "codes": ["zr"]}, {"sid": 39, "symbol": "ç", "descr": "VOICELESS PALATAL FRICATIVE", "descr_short": null, "t_type": 0, "col": 13, "row": 5, "u_no": "00E7", "codes": ["sc", "cj"]}, {"sid": 40, "symbol": "ʝ", "descr": "VOICED PALATAL FRICATIVE", "descr_short": null, "t_type": 0, "col": 14, "row": 5, "u_no": "029D", "codes": ["zc", "zj", "jc", "jj"]}, {"sid": 41, "symbol": "x", "descr": "VOICELESS VELAR FRICATIVE", "descr_short": null, "t_type": 0, "col": 15, "row": 5, "u_no": "0078", "codes": ["x", "sk"]}, {"sid": 42, "symbol": "ɣ", "descr": "VOICED VELAR FRICATIVE", "descr_short": null, "t_type": 0, "col": 16, "row": 5, "u_no": "0263", "codes": ["zg", "xg"]}, {"sid": 43, "symbol": "χ", "descr": "VOICELESS UVULAR FRICATIVE", "descr_short": null, "t_type": 0, "col": 17, "row": 5, "u_no": "03C7", "codes": ["sq", "xx"]}, {"sid": 44, "symbol": "ʁ", "descr": "VOICED UVULAR FRICATIVE", "descr_short": null, "t_type": 0, "col": 18, "row": 5, "u_no": "0281", "codes": ["zq", "Rr"]}, {"sid": 45, "symbol": "ħ", "descr": "VOICELESS PHARYNGEAL FRICATIVE", "descr_short": null, "t_type": 0, "col": 19, "row": 5, "u_no": "0127", "codes": ["h-", "h?", "s?"]}, {"sid": 46, "symbol": "ʕ", "descr": "VOICED PHARYNGEAL FRICATIVE/APPROXIMANT", "descr_short": null, "t_type": 0, "col": 20, "row": 5, "u_no": "0295", "codes": ["z?", "?r", "??"]}, {"sid": 47, "symbol": "h", "descr": "VOICELESS GLOTTAL FRICATIVE", "descr_short": null, "t_type": 0, "col": 21, "row": 5, "u_no": "0068", "codes": ["h"]}, {"sid": 48, "symbol": "ɦ", "descr": "VOICED GLOTTAL FRICATIVE", "descr_short": null, "t_type": 0, "col": 22, "row": 5, "u_no": "0266", "codes": ["hr", "zh"]}, {"sid": 49, "symbol": "ɬ", "descr": "VOICELESS DENTAL/ALVEOLAR LATERAL FRICATIVE", "descr_short": null, "t_type": 0, "col": 7, "row": 6, "u_no": "026C", "codes": ["sl"]}, {"sid": 50, "symbol": "ɮ", "descr": "VOICED DENTAL/ALVEOLAR LATERAL FRICATIVE", "descr_short": null, "t_type": 0, "col": 8, "row": 6, "u_no": "026E", "codes": ["zl"]}, {"sid": 51, "symbol": "ʋ", "descr": "VOICED LABIODENTAL APPROXIMANT", "descr_short": null, "t_type": 0, "col": 4, "row": 7, "u_no": "028B", "codes": ["jv", "vj", "wj"]}, {"sid": 52, "symbol": "ɹ", "descr": "VOICED DENTAL/ALVEOLAR APPROXIMANT", "descr_short": null, "t_type": 0, "col": 8, "row": 7, "u_no": "0279", "codes": ["jt", "jd"]}, {"sid": 53, "symbol": "ɻ", "descr": "VOICED RETROFLEX APPROXIMANT", "descr_short": null, "t_type": 0, "col": 12, "row": 7, "u_no": "027B", "codes": ["jr"]}, {"sid": 54, "symbol": "j", "descr": "VOICED PALATAL APPROXIMANT", "descr_short": null, "t_type": 0, "col": 14, "row": 7, "u_no": "006A", "codes": ["j", "jc"]}, {"sid": 55, "symbol": "ɰ", "descr": "VOICED VELAR APPROXIMANT", "descr_short": null, "t_type": 0, "col": 16, "row": 7, "u_no": "0270", "codes": ["jg", "wl", "w|", "jk"]}, {"sid": 56, "symbol": "l", "descr": "VOICED DENTAL/ALVEOLAR LATERAL APPROXIMANT", "descr_short": null, "t_type": 0, "col": 8, "row": 8, "u_no": "006C", "codes": ["l", "lt", "ld"]}, {"sid": 57, "symbol": "ɭ", "descr": "VOICED RETROFLEX LATERAL APPROXIMANT", "descr_short": null, "t_type": 0, "col": 12, "row": 8, "u_no": "026D", "codes": ["lr"]}, {"sid": 58, "symbol": "ʎ", "descr": "VOICED PALATAL LATERAL APPROXIMANT", "descr_short": null, "t_type": 0, "col": 14, "row": 8, "u_no": "028E", "codes": ["lc", "yr"]}, {"sid": 59, "symbol": "ʟ", "descr": "VOICED VELAR LATERAL APPROXIMANT", "descr_short": null, "t_type": 0, "col": 16, "row": 8, "u_no": "029F", "codes": ["ll", "Ll", "L", "lk", "lg"]}], "nonpulmonic": [{"sid": 60, "symbol": "ʘ", "descr": "BILABIAL CLICK", "descr_short": "bilabial", "t_type": 1, "col": 1, "row": 1, "u_no": "0298", "codes": ["m!", "p!", "b!", "o.", "O.", "0.", "!m", "!p", "!b"], "label": "双唇吸着音"}, {"sid": 61, "symbol": "ɓ", "descr": "VOICED BILABIAL IMPLOSIVE", "descr_short": "bilabial", "t_type": 1, "col": 2, "row": 1, "u_no": "0253", "codes": ["br", ";b", "b;", ";p", ";m"], "label": "双唇浊内爆音"}, {"sid": 62, "symbol": "ʼ", "descr": "EJECTIVE", "descr_short": "ejective", "t_type": 1, "col": 3, "row": 1, "u_no": "02BC", "codes": ["'"], "label": "挤气音标识"}, {"sid": 63, "symbol": "ǀ", "descr": "DENTAL CLICK", "descr_short": "dental", "t_type": 1, "col": 1, "row": 2, "u_no": "01C0", "codes": ["|", "|!", "v!", "!v"], "label": "齿吸着音"}, {"sid": 64, "symbol": "ɗ", "descr": "VOICED DENTAL/ALVEOLAR IMPLOSIVE", "descr_short": "dental/alveolar", "t_type": 1, "col": 2, "row": 2, "u_no": "0257", "codes": ["dr", "d;", ";d", ";v"], "label": "齿龈浊内爆音"}, {"sid": 65, "symbol": "pʼ", "descr": "BILABIAL EJECTIVE", "descr_short": "bilabial", "t_type": 1, "col": 3, "row": 2, "u_no": "0070 + 02BC", "codes": ["p'"], "label": "双唇挤气音"}, {"sid": 66, "symbol": "ǃ", "descr": "(POST)ALVEOLAR CLICK", "descr_short": "(post)alveolar", "t_type": 1, "col": 1, "row": 3, "u_no": "01C3", "codes": ["!", "!!", "t!", "d!", "!d"], "label": "龈(后)吸着音"}, {"sid": 67, "symbol": "ʄ", "descr": "VOICED PALATAL IMPLOSIVE", "descr_short": "palatal", "t_type": 1, "col": 2, "row": 3, "u_no": "0284", "codes": ["s-", ";t", ";d"], "label": "硬腭浊内爆音"}, {"sid": 68, "symbol": "tʼ", "descr": "DENTAL/ALVEOLAR EJECTIVE", "descr_short": "dental/alveolar", "t_type": 1, "col": 3, "row": 3, "u_no": "0074 + 02BC", "codes": ["t'"], "label": "齿龈挤气音"}, {"sid": 69, "symbol": "ǂ", "descr": "PALATOALVEOLAR CLICK", "descr_short": "palatoalveolar", "t_type": 1, "col": 1, "row": 4, "u_no": "01C2", "codes": ["|=", "|-", "c!", "!c"], "label": "腭龈吸着音"}, {"sid": 70, "symbol": "ɠ", "descr": "VOICED VELAR IMPLOSIVE", "descr_short": "velar", "t_type": 1, "col": 2, "row": 4, "u_no": "0260", "codes": ["gr", ";k", ";g"], "label": "软腭浊内爆音"}, {"sid": 71, "symbol": "kʼ", "descr": "VELAR EJECTIVE", "descr_short": "velar", "t_type": 1, "col": 3, "row": 4, "u_no": "006B + 02BC", "codes": ["k'"], "label": "软腭挤气音"}, {"sid": 72, "symbol": "ǁ", "descr": "ALVEOLAR LATERAL CLICK", "descr_short": "alveolar lateral", "t_type": 1, "col": 1, "row": 5, "u_no": "01C1", "codes": ["||", "l!", "!l"], "label": "龈边吸着音"}, {"sid": 73, "symbol": "ʛ", "descr": "VOICED UVULAR IMPLOSIVE", "descr_short": "uvular", "t_type": 1, "col": 2, "row": 5, "u_no": "029B", "codes": ["Gr", ";q"], "label": "小舌浊内爆音"}, {"sid": 74, "symbol": "sʼ", "descr": "ALVEOLAR FRICATIVE EJECTIVE", "descr_short": "alveolar fricative", "t_type": 1, "col": 3, "row": 5, "u_no": "0073 + 02BC", "codes": ["s'"], "label": "龈擦挤气音"}], "other": [{"sid": 75, "symbol": "ʍ", "descr": "VOICELESS LABIAL-VELAR FRICATIVE", "descr_short": null, "t_type": 2, "col": 1, "row": 1, "u_no": "028D", "codes": ["wr"], "label": "唇软腭清擦音"}, {"sid": 76, "symbol": "ɕ", "descr": "VOICELESS ALVEOLO-PALATAL FRICATIVE", "descr_short": null, "t_type": 2, "col": 2, "row": 1, "u_no": "0255", "codes": ["xi", "cj"], "label": "龈腭清擦音"}, {"sid": 77, "symbol": "ʑ", "descr": "VOICED ALVEOLO-PALATAL FRICATIVE", "descr_short": null, "t_type": 2, "col": 3, "row": 1, "u_no": "0291", "codes": ["zj", "ji"], "label": "龈腭浊擦音"}, {"sid": 78, "symbol": "w", "descr": "VOICED LABIAL-VELAR APPROXIMANT", "descr_short": null, "t_type": 2, "col": 1, "row": 2, "u_no": "0077", "codes": ["w"], "label": "唇软腭浊近音"}, {"sid": 79, "symbol": "ɺ", "descr": "VOICED ALVEOLAR LATERAL FLAP", "descr_short": null, "t_type": 2, "col": 3, "row": 2, "u_no": "027A", "codes": ["rl", "|r", "rV", "|V", "|R"], "label": "龈边浊闪音"}, {"sid": 80, "symbol": "ɥ", "descr": "VOICED LABIAL-PALATAL APPROXIMANT", "descr_short": null, "t_type": 2, "col": 1, "row": 3, "u_no": "0265", "codes": ["yu", "yl", "y|", "ul", "u|"], "label": "唇硬腭浊近音"}, {"sid": 81, "symbol": "ɧ", "descr": "VOICELESS POSTALVEOLAR-VELAR FRICATIVE", "descr_short": null, "t_type": 2, "col": 2, "row": 3, "u_no": "0267", "codes": ["hx", "sx", "shx", "stx"], "label": "龈后软腭清擦音（同时发ʃ和x）"}, {"sid": 82, "symbol": "ʜ", "descr": "VOICELESS EPIGLOTTAL FRICATIVE", "descr_short": null, "t_type": 2, "col": 1, "row": 4, "u_no": "029C", "codes": ["H", "Hh", "Hl", "/h", "?h", "/s", "?s"], "label": "会厌清擦音"}, {"sid": 83, "symbol": "ʢ", "descr": "VOICED EPIGLOTTAL FRICATIVE/APPROXIMANT", "descr_short": null, "t_type": 2, "col": 1, "row": 5, "u_no": "02A2", "codes": ["z?-", "?r-", "/z", "?z", "??-"], "label": "会厌浊擦音/近音"}, {"sid": 84, "symbol": "ʡ", "descr": "EPIGLOTTAL PLOSIVE", "descr_short": null, "t_type": 2, "col": 1, "row": 6, "u_no": "02A1", "codes": ["?-", "/p", "?p", "/b", "?b", "th-", "dh-", "ph-", "bh-"], "label": "会厌爆发音"}, {"sid": 85, "symbol": "͜", "descr": "TIE BAR (BELOW)", "descr_short": null, "t_type": 2, "col": 2, "row": 6, "u_no": "035C", "codes": ["]"], "label": "连接符（下）"}, {"sid": 86, "symbol": "͡", "descr": "TIE BAR (ABOVE)", "descr_short": null, "t_type": 2, "col": 3, "row": 6, "u_no": "0361", "codes": ["["], "label": "连接符（上）"}], "diacritics": [{"sid": 87, "symbol": "̥", "descr": "VOICELESS", "descr_short": null, "t_type": 3, "col": 1, "row": 1, "u_no": "0325", "codes": ["o+", "0+", "O+"], "label": "清化"}, {"sid": 88, "symbol": "̤", "descr": "BREATHY VOICED", "descr_short": null, "t_type": 3, "col": 2, "row": 1, "u_no": "0324", "codes": [":+"], "label": "气声化"}, {"sid": 89, "symbol": "̪", "descr": "DENTAL", "descr_short": null, "t_type": 3, "col": 3, "row": 1, "u_no": "032A", "codes": ["v+", "st+", "sv+"], "label": "齿音"}, {"sid": 90, "symbol": "̬", "descr": "VOICED", "descr_short": null, "t_type": 3, "col": 1, "row": 2, "u_no": "032C", "codes": ["^+", "v+"], "label": "浊化"}, {"sid": 91, "symbol": "̰", "descr": "CREAKY VOICED", "descr_short": null, "t_type": 3, "col": 2, "row": 2, "u_no": "0330", "codes": ["~+"], "label": "嘎裂声化"}, {"sid": 92, "symbol": "̺", "descr": "APICAL", "descr_short": null, "t_type": 3, "col": 3, "row": 2, "u_no": "033A", "codes": ["t+", "r+"], "label": "舌尖音"}, {"sid": 93, "symbol": "ʰ", "descr": "ASPIRATED", "descr_short": null, "t_type": 3, "col": 1, "row": 3, "u_no": "02B0", "codes": ["h+"], "label": "送气"}, {"sid": 94, "symbol": "̼", "descr": "LINGUOLABIAL", "descr_short": null, "t_type": 3, "col": 2, "row": 3, "u_no": "033C", "codes": ["`+", "~~+", "w+"], "label": "舌唇音"}, {"sid": 95, "symbol": "̻", "descr": "LAMINAL", "descr_short": null, "t_type": 3, "col": 3, "row": 3, "u_no": "033B", "codes": ["ts+", "rr+"], "label": "舌叶音"}, {"sid": 96, "symbol": "̹", "descr": "MORE ROUNDED", "descr_short": null, "t_type": 3, "col": 1, "row": 4, "u_no": "0339", "codes": [")+"], "label": "更圆"}, {"sid": 97, "symbol": "ʷ", "descr": "LABIALIZED", "descr_short": null, "t_type": 3, "col": 2, "row": 4, "u_no": "02B7", "codes": ["w+"], "label": "唇化"}, {"sid": 98, "symbol": "̃", "descr": "NASALIZED", "descr_short": null, "t_type": 3, "col": 3, "row": 4, "u_no": "0303", "codes": ["~++"], "label": "鼻化"}, {"sid": 99, "symbol": "̜", "descr": "LESS ROUNDED", "descr_short": null, "t_type": 3, "col": 1, "row": 5, "u_no": "031C", "codes": ["c+", "(+"], "label": "略展"}, {"sid": 100, "symbol": "ʲ", "descr": "PALATALIZED", "descr_short": null, "t_type": 3, "col": 2, "row": 5, "u_no": "02B2", "codes": ["j+"], "label": "硬腭化"}, {"sid": 101, "symbol": "ⁿ", "descr": "NASAL RELEASE", "descr_short": null, "t_type": 3, "col": 3, "row": 5, "u_no": "207F", "codes": ["n+"], "label": "鼻音除阻"}, {"sid": 102, "symbol": "̟", "descr": "ADVANCED", "descr_short": null, "t_type": 3, "col": 1, "row": 6, "u_no": "031F", "codes": ["++"], "label": "偏前"}, {"sid": 103, "symbol": "ˠ", "descr": "VELARIZED", "descr_short": null, "t_type": 3, "col": 2, "row": 6, "u_no": "02E0", "codes": ["k+", "g+", "zg+", "xg+"], "label": "软腭化"}, {"sid": 104, "symbol": "ˡ", "descr": "LATERAL RELEASE", "descr_short": null, "t_type": 3, "col": 3, "row": 6, "u_no": "02E1", "codes": ["l+"], "label": "边音除阻"}, {"sid": 105, "symbol": "̠", "descr": "RETRACTED", "descr_short": null, "t_type": 3, "col": 1, "row": 7, "u_no": "0320", "codes": ["-+"], "label": "偏后"}, {"sid": 106, "symbol": "ˤ", "descr": "PHARYNGEALIZED", "descr_short": null, "t_type": 3, "col": 2, "row": 7, "u_no": "02E4", "codes": ["?+", "?r+", "z?+", "??+"], "label": "咽化"}, {"sid": 107, "symbol": "̚", "descr": "NO AUDIBLE RELEASE", "descr_short": null, "t_type": 3, "col": 3, "row": 7, "u_no": "031A", "codes": ["k+"], "label": "无听感除阻"}, {"sid": 108, "symbol": "̈", "descr": "CENTRALIZED", "descr_short": null, "t_type": 3, "col": 1, "row": 8, "u_no": "0308", "codes": [":++"], "label": "央化"}, {"sid": 109, "symbol": "̴", "descr": "VELARIZED OR PHARYNGEALIZED", "descr_short": null, "t_type": 3, "col": 2, "row": 8, "u_no": "0334", "codes": ["~="], "label": "软腭化或咽化"}, {"sid": 110, "symbol": "̽", "descr": "MID-CENTRALIZED", "descr_short": null, "t_type": 3, "col": 1, "row": 9, "u_no": "033D", "codes": ["x+"], "label": "中央化"}, {"sid": 111, "symbol": "̝", "descr": "RAISED", "descr_short": null, "t_type": 3, "col": 2, "row": 9, "u_no": "031D", "codes": ["+r", "+h", "+u", "+g", "+gao"], "label": "偏高"}, {"sid": 112, "symbol": "̩", "descr": "SYLLABIC", "descr_short": null, "t_type": 3, "col": 1, "row": 10, "u_no": "0329", "codes": ["|+", "\\+", "i+", "/+"], "label": "成音节"}, {"sid": 113, "symbol": "̞", "descr": "LOWERED", "descr_short": null, "t_type": 3, "col": 2, "row": 10, "u_no": "031E", "codes": ["+l", "+d", "+di"], "label": "偏低"}, {"sid": 114, "symbol": "̯", "descr": "NON-SYLLABIC", "descr_short": null, "t_type": 3, "col": 1, "row": 11, "u_no": "032F", "codes": ["n+"], "label": "不成音节"}, {"sid": 115, "symbol": "̘", "descr": "ADVANCED TONGUE ROOT", "descr_short": null, "t_type": 3, "col": 2, "row": 11, "u_no": "0318", "codes": ["+a", "+q", "+qian"], "label": "偏前"}, {"sid": 116, "symbol": "˞", "descr": "RHOTICITY", "descr_short": null, "t_type": 3, "col": 1, "row": 12, "u_no": "02DE", "codes": ["r+"], "label": "卷舌性"}, {"sid": 117, "symbol": "̙", "descr": "RETRACTED TONGUE ROOT", "descr_short": null, "t_type": 3, "col": 2, "row": 12, "u_no": "0319", "codes": ["+rt", "+hou"], "label": "偏后"}], "vowels": [{"sid": 118, "symbol": "i", "descr": "CLOSE FRONT UNROUNDED VOWEL", "descr_short": null, "t_type": 4, "col": 6, "row": 1, "u_no": "0069", "codes": ["i"]}, {"sid": 119, "symbol": "y", "descr": "CLOSE FRONT ROUNDED VOWEL", "descr_short": null, "t_type": 4, "col": 10, "row": 1, "u_no": "0079", "codes": ["y"]}, {"sid": 120, "symbol": "ɨ", "descr": "CLOSE CENTRAL UNROUNDED VOWEL", "descr_short": null, "t_type": 4, "col": 18, "row": 1, "u_no": "0268", "codes": ["i-"]}, {"sid": 121, "symbol": "ʉ", "descr": "CLOSE CENTRAL ROUNDED VOWEL", "descr_short": null, "t_type": 4, "col": 22, "row": 1, "u_no": "0289", "codes": ["u-"]}, {"sid": 122, "symbol": "ɯ", "descr": "CLOSE BACK UNROUNDED VOWEL", "descr_short": null, "t_type": 4, "col": 30, "row": 1, "u_no": "026F", "codes": ["uu", "i=", "u="]}, {"sid": 123, "symbol": "u", "descr": "CLOSE BACK ROUNDED VOWEL", "descr_short": null, "t_type": 4, "col": 34, "row": 1, "u_no": "0075", "codes": ["u"]}, {"sid": 124, "symbol": "ɪ", "descr": "NEAR-CLOSE NEAR-FRONT UNROUNDED VOWEL", "descr_short": null, "t_type": 4, "col": 12, "row": 2, "u_no": "026A", "codes": ["ii"]}, {"sid": 125, "symbol": "ʏ", "descr": "NEAR-CLOSE NEAR-FRONT ROUNDED VOWEL", "descr_short": null, "t_type": 4, "col": 15, "row": 2, "u_no": "028F", "codes": ["Y", "yy"]}, {"sid": 126, "symbol": "ʊ", "descr": "NEAR-CLOSE NEAR-BACK ROUNDED VOWEL", "descr_short": null, "t_type": 4, "col": 28, "row": 2, "u_no": "028A", "codes": ["uu", "or"]}, {"sid": 127, "symbol": "e", "descr": "CLOSE-MID FRONT UNROUNDED VOWEL", "descr_short": null, "t_type": 4, "col": 10, "row": 3, "u_no": "0065", "codes": ["e"]}, {"sid": 128, "symbol": "ø", "descr": "CLOSE-MID FRONT ROUNDED VOWEL", "descr_short": null, "t_type": 4, "col": 14, "row": 3, "u_no": "00F8", "codes": ["e`", "o/"]}, {"sid": 129, "symbol": "ɘ", "descr": "CLOSE-MID CENTRAL UNROUNDED VOWEL", "descr_short": null, "t_type": 4, "col": 20, "row": 3, "u_no": "0258", "codes": ["e-"]}, {"sid": 130, "symbol": "ɵ", "descr": "CLOSE-MID CENTRAL ROUNDED VOWEL", "descr_short": null, "t_type": 4, "col": 24, "row": 3, "u_no": "0275", "codes": ["o-", "e--"]}, {"sid": 131, "symbol": "ɤ", "descr": "CLOSE-MID BACK UNROUNDED VOWEL", "descr_short": null, "t_type": 4, "col": 30, "row": 3, "u_no": "0264", "codes": ["e="]}, {"sid": 132, "symbol": "o", "descr": "CLOSE-MID BACK ROUNDED VOWEL", "descr_short": null, "t_type": 4, "col": 34, "row": 3, "u_no": "006F", "codes": ["o"]}, {"sid": 133, "symbol": "ə", "descr": "MID CENTRAL VOWEL", "descr_short": null, "t_type": 4, "col": 23, "row": 4, "u_no": "0259", "codes": ["ee"]}, {"sid": 134, "symbol": "ɛ", "descr": "OPEN-MID FRONT UNROUNDED VOWEL", "descr_short": null, "t_type": 4, "col": 14, "row": 5, "u_no": "025B", "codes": ["E"]}, {"sid": 135, "symbol": "œ", "descr": "OPEN-MID FRONT ROUNDED VOWEL", "descr_short": null, "t_type": 4, "col": 18, "row": 5, "u_no": "0153", "codes": ["oe", "E`"]}, {"sid": 136, "symbol": "ɜ", "descr": "OPEN-MID CENTRAL UNROUNDED VOWEL", "descr_short": null, "t_type": 4, "col": 22, "row": 5, "u_no": "025C", "codes": ["E-", "Er"]}, {"sid": 137, "symbol": "ɞ", "descr": "OPEN-MID CENTRAL ROUNDED VOWEL", "descr_short": null, "t_type": 4, "col": 26, "row": 5, "u_no": "025E", "codes": ["E--", "(E", "(Er", "Er-", "(E-"]}, {"sid": 138, "symbol": "ʌ", "descr": "OPEN-MID BACK UNROUNDED VOWEL", "descr_short": null, "t_type": 4, "col": 30, "row": 5, "u_no": "028C", "codes": ["vr", "E=", "av"]}, {"sid": 139, "symbol": "ɔ", "descr": "OPEN-MID BACK ROUNDED VOWEL", "descr_short": null, "t_type": 4, "col": 34, "row": 5, "u_no": "0254", "codes": ["cr", "vr=", "E=="]}, {"sid": 140, "symbol": "æ", "descr": "NEAR-OPEN FRONT UNROUNDED VOWEL", "descr_short": null, "t_type": 4, "col": 16, "row": 6, "u_no": "00E6", "codes": ["ae"]}, {"sid": 141, "symbol": "ɐ", "descr": "NEAR-OPEN CENTRAL VOWEL", "descr_short": null, "t_type": 4, "col": 25, "row": 6, "u_no": "0250", "codes": ["ar", "a-"]}, {"sid": 142, "symbol": "a", "descr": "OPEN FRONT UNROUNDED VOWEL", "descr_short": null, "t_type": 4, "col": 18, "row": 7, "u_no": "0061", "codes": ["a"]}, {"sid": 143, "symbol": "ɶ", "descr": "OPEN FRONT ROUNDED VOWEL", "descr_short": null, "t_type": 4, "col": 22, "row": 7, "u_no": "0276", "codes": ["OE", "a`"]}, {"sid": 144, "symbol": "ɑ", "descr": "OPEN BACK UNROUNDED VOWEL", "descr_short": null, "t_type": 4, "col": 30, "row": 7, "u_no": "0251", "codes": ["al", "aa", "a="]}, {"sid": 145, "symbol": "ɒ", "descr": "OPEN BACK ROUNDED VOWEL", "descr_short": null, "t_type": 4, "col": 34, "row": 7, "u_no": "0252", "codes": ["alr", "al=", "rc", "ao", "aar", "aa=", "a=r", "a=="]}], "suprasegmentals": [{"sid": 146, "symbol": "ˈ", "descr": "PRIMARY STRESS", "descr_short": null, "t_type": 5, "col": 1, "row": 1, "u_no": "02C8", "codes": ["\""], "label": "主重音"}, {"sid": 147, "symbol": "ˌ", "descr": "SECONDARY STRESS", "descr_short": null, "t_type": 5, "col": 1, "row": 2, "u_no": "02CC", "codes": ["\"\""], "label": "次重音"}, {"sid": 148, "symbol": "ː", "descr": "LONG", "descr_short": null, "t_type": 5, "col": 1, "row": 3, "u_no": "02D0", "codes": [":"], "label": "长音"}, {"sid": 149, "symbol": "ˑ", "descr": "HALF-LONG", "descr_short": null, "t_type": 5, "col": 1, "row": 4, "u_no": "02D1", "codes": ["::"], "label": "半长音"}, {"sid": 150, "symbol": "̆", "descr": "EXTRA-SHORT", "descr_short": null, "t_type": 5, "col": 1, "row": 5, "u_no": "0306", "codes": ["`", "^"], "label": "超短音"}, {"sid": 151, "symbol": "|", "descr": "MINOR (FOOT) GROUP", "descr_short": null, "t_type": 5, "col": 1, "row": 6, "u_no": "007C", "codes": ["|"], "label": "小（音步）段"}, {"sid": 152, "symbol": "‖", "descr": "MAJOR (INTONATION) GROUP", "descr_short": null, "t_type": 5, "col": 1, "row": 7, "u_no": "2016", "codes": ["||"], "label": "大（语调）段"}, {"sid": 153, "symbol": ".", "descr": "SYLLABLE BREAK", "descr_short": null, "t_type": 5, "col": 1, "row": 8, "u_no": "002E", "codes": ["."], "label": "分音节符"}, {"sid": 154, "symbol": "‿", "descr": "LINKING (ABSENCE OF A BREAK)", "descr_short": null, "t_type": 5, "col": 1, "row": 9, "u_no": "203F", "codes": ["&"], "label": "连接（无间隔出现）"}], "tones": [{"sid": 155, "symbol": "̋", "descr": "EXTRA HIGH LEVEL TONE (ACCENT MARK)", "descr_short": "extra high", "t_type": 6, "col": 1, "row": 1, "u_no": "030B", "codes": ["1+"], "label": "超高平调（重音符）"}, {"sid": 156, "symbol": "˥", "descr": "EXTRA HIGH LEVEL TONE (CHAO LETTER)", "descr_short": "extra high", "t_type": 6, "col": 2, "row": 1, "u_no": "02E5", "codes": ["1"], "label": "超高平调（调值符）"}, {"sid": 157, "symbol": "̌", "descr": "RISING CONTOUR TONE (ACCENT MARK)", "descr_short": "rising", "t_type": 6, "col": 3, "row": 1, "u_no": "030C", "codes": ["51+"], "label": "升调（重音符）"}, {"sid": 158, "symbol": "˩˥", "descr": "RISING CONTOUR TONE (CHAO LETTER)", "descr_short": "rising", "t_type": 6, "col": 4, "row": 1, "u_no": "02E9 + 02E5", "codes": ["51"], "label": "升调（调值符）"}, {"sid": 159, "symbol": "́", "descr": "HIGH LEVEL TONE (ACCENT MARK)", "descr_short": "high", "t_type": 6, "col": 1, "row": 2, "u_no": "0301", "codes": ["2+"], "label": "高平调（重音符）"}, {"sid": 160, "symbol": "˦", "descr": "HIGH LEVEL TONE (CHAO LETTER)", "descr_short": "high", "t_type": 6, "col": 2, "row": 2, "u_no": "02E6", "codes": ["2"], "label": "高平调（调值符）"}, {"sid": 161, "symbol": "̂", "descr": "FALLING CONTOUR TONE (ACCENT MARK)", "descr_short": "falling", "t_type": 6, "col": 3, "row": 2, "u_no": "0302", "codes": ["15+"], "label": "降调（重音符）"}, {"sid": 162, "symbol": "˥˩", "descr": "FALLING CONTOUR TONE (CHAO LETTER)", "descr_short": "falling", "t_type": 6, "col": 4, "row": 2, "u_no": "02E5 + 02E9", "codes": ["15"], "label": "降调（调值符）"}, {"sid": 163, "symbol": "̄", "descr": "MID LEVEL TONE (ACCENT MARK)", "descr_short": "mid", "t_type": 6, "col": 1, "row": 3, "u_no": "0304", "codes": ["3+"], "label": "中平调（重音符）"}, {"sid": 164, "symbol": "˧", "descr": "MID LEVEL TONE (CHAO LETTER)", "descr_short": "mid", "t_type": 6, "col": 2, "row": 3, "u_no": "02E7", "codes": ["3"], "label": "中平调（调值符）"}, {"sid": 165, "symbol": "᷄", "descr": "HIGH RISING CONTOUR TONE (ACCENT MARK)", "descr_short": "high rising", "t_type": 6, "col": 3, "row": 3, "u_no": "1DC4", "codes": ["31+"], "label": "高升调（重音符）"}, {"sid": 166, "symbol": "˧˥", "descr": "HIGH RISING CONTOUR TONE (CHAO LETTER)", "descr_short": "high rising", "t_type": 6, "col": 4, "row": 3, "u_no": "02E7 + 02E5", "codes": ["31"], "label": "高升调（调值符）"}, {"sid": 167, "symbol": "̀", "descr": "LOW LEVEL TONE (ACCENT MARK)", "descr_short": "low", "t_type": 6, "col": 1, "row": 4, "u_no": "0300", "codes": ["4+"], "label": "低平调（重音符）"}, {"sid": 168, "symbol": "˨", "descr": "LOW LEVEL TONE (CHAO LETTER)", "descr_short": "low", "t_type": 6, "col": 2, "row": 4, "u_no": "02E8", "codes": ["4"], "label": "低平调（调值符）"}, {"sid": 169, "symbol": "᷅", "descr": "LOW RISING CONTOUR TONE (ACCENT MARK)", "descr_short": "low rising", "t_type": 6, "col": 3, "row": 4, "u_no": "1DC5", "codes": ["13+"], "label": "低升调（重音符）"}, {"sid": 170, "symbol": "˩˧", "descr": "LOW RISING CONTOUR TONE (CHAO LETTER)", "descr_short": "low rising", "t_type": 6, "col": 4, "row": 4, "u_no": "02E9 + 02E7", "codes": ["53"], "label": "低升调（调值符）"}, {"sid": 171, "symbol": "̏", "descr": "EXTRA LOW LEVEL TONE (ACCENT MARK)", "descr_short": "extra low", "t_type": 6, "col": 1, "row": 5, "u_no": "030F", "codes": ["5+"], "label": "超低平调（重音符）"}, {"sid": 172, "symbol": "˩", "descr": "EXTRA LOW LEVEL TONE (CHAO LETTER)", "descr_short": "extra low", "t_type": 6, "col": 2, "row": 5, "u_no": "02E9", "codes": ["5"], "label": "超低平调（调值符）"}, {"sid": 173, "symbol": "᷈", "descr": "RISING-FALLING CONTOUR TONE (ACCENT MARK)", "descr_short": "rising-falling", "t_type": 6, "col": 3, "row": 5, "u_no": "1DC8", "codes": ["324+"], "label": "升降调（重音符）"}, {"sid": 174, "symbol": "˧˦˨", "descr": "RISING-FALLING CONTOUR TONE (CHAO LETTER)", "descr_short": "rising-falling", "t_type": 6, "col": 4, "row": 5, "u_no": "02E7 + 02E6 + 02E8", "codes": ["324"], "label": "升降调（调值符）"}, {"sid": 175, "symbol": "ꜜ", "descr": "DOWNSTEP", "descr_short": "downstep", "t_type": 6, "col": 1, "row": 6, "u_no": "A71C", "codes": ["down", "downstep"], "label": "降阶"}, {"sid": 176, "symbol": "↗", "descr": "GLOBAL RISE", "descr_short": "global rise", "t_type": 6, "col": 3, "row": 6, "u_no": "2197", "codes": ["global", "rise", "globalrise", "glor"], "label": "整体上升"}, {"sid": 177, "symbol": "ꜛ", "descr": "UPSTEP", "descr_short": "upstep", "t_type": 6, "col": 1, "row": 7, "u_no": "A71B", "codes": ["up", "upstep"], "label": "升阶"}, {"sid": 178, "symbol": "↘", "descr": "GLOBAL FALL", "descr_short": "global fall", "t_type": 6, "col": 3, "row": 7, "u_no": "2198", "codes": ["global", "fall", "globalfall", "glof"], "label": "整体下降"}]};
+
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  function searchKey(sym, codes) {
+    // deliberately NOT including the (often English) descriptive label here:
+    // e.g. "close-mid" contains "se", which used to make searching "se"
+    // surface a pile of unrelated vowels. Search should only match what the
+    // user actually types — the symbol itself or one of its codes.
+    return (sym + ' ' + (codes||[]).join(' ')).toLowerCase();
+  }
+
+  function codeText(codes) {
+    return codes && codes.length ? esc(codes[0]) : '—';
+  }
+
+  function dataAttrs(sym, codes, label) {
+    const key = esc(searchKey(sym, codes));
+    const code = codes && codes.length ? esc(codes.join(' / ')) : '';
+    return `data-key="${key}" data-sym="${esc(sym)}" data-code="${code}" data-label="${esc(label || '')}"`;
+  }
+
+  function cellHtml(sym, codes, label) {
+    return `<span class="cell" ${dataAttrs(sym, codes, label)}><span class="g-sym">${esc(sym)}</span><span class="g-code">${codeText(codes)}</span></span>`;
+  }
+
+  // ---------------- pulmonic consonants ----------------
+  function buildPulmonic() {
+    const table = document.getElementById('t-pulmonic');
+    const byPos = {};
+    D.pulmonic.forEach(s => { byPos[s.col + '_' + s.row] = s; });
+    const impSet = new Set(D.imp.map(p => p[0] + '_' + p[1]));
+
+    let thead = '<thead><tr><th></th>';
+    D.places.forEach(p => { thead += `<th colspan="2">${p}</th>`; });
+    thead += '</tr></thead>';
+
+    let body = '<tbody>';
+    D.manners.forEach((manner, ri) => {
+      const row = ri + 1;
+      body += `<tr><td class="rowhead">${manner}</td>`;
+      for (let col = 1; col <= 22; col++) {
+        const s = byPos[col + '_' + row];
+        const shaded = impSet.has(col + '_' + row);
+        if (s) {
+          body += `<td>${cellHtml(s.symbol, s.codes, s.descr)}</td>`;
+        } else if (shaded) {
+          body += `<td class="shade"></td>`;
+        } else {
+          body += `<td class="blank"></td>`;
+        }
+      }
+      body += '</tr>';
+    });
+    body += '</tbody>';
+    table.innerHTML = thead + body;
+  }
+
+  // ---------------- non-pulmonic ----------------
+  function buildNonPulmonic() {
+    const table = document.getElementById('t-nonpulmonic');
+    const byPos = {};
+    D.nonpulmonic.forEach(s => { byPos[s.col + '_' + s.row] = s; });
+    let thead = '<thead><tr>';
+    D.airstreams.forEach(a => { thead += `<th>${a}</th>`; });
+    thead += '</tr></thead>';
+    let body = '<tbody>';
+    for (let row = 1; row <= 5; row++) {
+      body += '<tr>';
+      for (let col = 1; col <= 3; col++) {
+        const s = byPos[col + '_' + row];
+        body += s ? `<td>${cellHtml(s.symbol, s.codes, s.label)}</td>` : '<td class="blank"></td>';
+      }
+      body += '</tr>';
+    }
+    body += '</tbody>';
+    table.innerHTML = thead + body;
+  }
+
+  // ---------------- other symbols / diacritics (label grids) ----------------
+  function buildLabelGrid(elId, items, cols, rows) {
+    const table = document.getElementById(elId);
+    const byPos = {};
+    items.forEach(s => { byPos[s.col + '_' + s.row] = s; });
+    let body = '<tbody>';
+    for (let row = 1; row <= rows; row++) {
+      body += '<tr>';
+      for (let col = 1; col <= cols; col++) {
+        const s = byPos[col + '_' + row];
+        if (s) {
+          body += `<td><div class="lbl">${esc(s.label)}</div><span class="cell" ${dataAttrs(s.symbol, s.codes, s.label)}><span class="g-sym">${esc(s.symbol)}</span><span class="g-code">${codeText(s.codes)}</span></span></td>`;
+        } else {
+          body += '<td class="blank"></td>';
+        }
+      }
+      body += '</tr>';
+    }
+    body += '</tbody>';
+    table.innerHTML = body;
+  }
+
+  // ---------------- suprasegmentals ----------------
+  function buildSupra() {
+    const ul = document.getElementById('t-supra');
+    ul.innerHTML = D.suprasegmentals.map(s => {
+      const na = !s.codes;
+      return `<li class="cell ${na ? 'na' : ''}" ${dataAttrs(s.symbol, s.codes, s.label)}>
+        <span class="g-sym">${esc(s.symbol)}</span>
+        <span class="lbl">${esc(s.label)}</span>
+        <span class="g-code">${na ? '本方案未编码' : codeText(s.codes)}</span>
+      </li>`;
+    }).join('');
+  }
+
+  // ---------------- tones ----------------
+  function buildTones() {
+    const table = document.getElementById('t-tones');
+    const byPos = {};
+    D.tones.forEach(s => { byPos[s.col + '_' + s.row] = s; });
+    let thead = `<thead><tr><th colspan="2">平调</th><th colspan="2">非平调</th></tr></thead>`;
+    let body = '<tbody>';
+    for (let row = 1; row <= 7; row++) {
+      body += '<tr>';
+      for (let col = 1; col <= 4; col++) {
+        const s = byPos[col + '_' + row];
+        body += s ? `<td>${cellHtml(s.symbol, s.codes, s.label)}</td>` : '<td class="blank"></td>';
+      }
+      body += '</tr>';
+    }
+    body += '</tbody>';
+    table.innerHTML = thead + body;
+  }
+
+  // ---------------- vowels (SVG trapezoid) ----------------
+  function buildVowels() {
+    const svg = document.getElementById('vowel-svg');
+    const X = c => 46 + (c - 5) * 9.2;
+    const Y = r => 58 + (r - 1) * 40;
+    const parts = [];
+
+    parts.push(`<text class="v-axis" x="${X(10)}" y="16" text-anchor="middle">前</text>`);
+    parts.push(`<text class="v-axis" x="${X(23)}" y="16" text-anchor="middle">央</text>`);
+    parts.push(`<text class="v-axis" x="${X(34)}" y="16" text-anchor="middle">后</text>`);
+
+    const heightRows = {1:'狭', 3:'半狭', 5:'半广', 7:'广'};
+    Object.entries(heightRows).forEach(([r, label]) => {
+      parts.push(`<text class="v-axis" x="2" y="${Y(+r) + 4}" text-anchor="start">${label}</text>`);
+    });
+
+    // outer boundary must pass exactly through the real corner-vowel
+    // positions (front i/e/ɛ/a, back u/o/ɔ/ɒ) — not a hand-drawn shape —
+    // so the trapezoid line and the dots always line up
+    const bySym = {};
+    D.vowels.forEach(s => { bySym[s.symbol] = s; });
+    const boundaryOrder = ['i', 'e', 'ɛ', 'a', 'ɒ', 'ɔ', 'o', 'u'];
+    const boundaryPts = boundaryOrder
+      .map(sym => bySym[sym])
+      .filter(Boolean)
+      .map(s => `${X(s.col)},${Y(s.row)}`)
+      .join(' ');
+    parts.push(`<polygon class="v-line" points="${boundaryPts}" />`);
+
+    D.vowels.forEach(s => {
+      const x = X(s.col), y = Y(s.row);
+      parts.push(`<g class="v-cell" ${dataAttrs(s.symbol, s.codes, s.descr)}>
+        <circle class="v-dot" cx="${x}" cy="${y}" r="1.8" />
+        <text class="v-sym" x="${x}" y="${y - 7}" text-anchor="middle">${esc(s.symbol)}</text>
+        <text class="v-code" x="${x}" y="${y + 13}" text-anchor="middle">${codeText(s.codes)}</text>
+      </g>`);
+    });
+
+    svg.innerHTML = parts.join('');
+  }
+
+  buildPulmonic();
+  buildNonPulmonic();
+  buildLabelGrid('t-other', D.other, 3, 6);
+  buildLabelGrid('t-diacritics', D.diacritics, 3, 12);
+  buildSupra();
+  buildTones();
+  buildVowels();
+
+  // ---------------- search ----------------
+  const qEl = document.getElementById('q');
+  const countEl = document.getElementById('matchcount');
+
+  function applySearch() {
+    const q = qEl.value.trim().toLowerCase();
+    const cells = document.querySelectorAll('.cell, .v-cell');
+    if (!q) {
+      cells.forEach(c => { c.classList.remove('hit'); c.closest('td, li')?.classList.remove('dim'); c.classList.remove('dim'); });
+      countEl.textContent = '';
+      return;
+    }
+    let hits = 0;
+    let firstHit = null;
+    cells.forEach(c => {
+      const key = c.dataset.key || '';
+      const match = key.includes(q);
+      c.classList.toggle('hit', match);
+      const host = c.tagName === 'LI' ? c : (c.closest('td') || c);
+      host.classList.toggle('dim', !match);
+      if (match) { hits++; if (!firstHit) firstHit = c; }
+    });
+    countEl.textContent = hits + ' 处匹配';
+    if (firstHit) firstHit.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  qEl.addEventListener('input', applySearch);
+
+  // ---------------- hover magnifier ----------------
+  const magnifier = document.getElementById('magnifier');
+  const mSym = document.getElementById('m-sym');
+  const mCode = document.getElementById('m-code');
+  const mLabel = document.getElementById('m-label');
+  let currentEl = null;
+
+  function positionMagnifier(el) {
+    // #magnifier is a fixed-position element OUTSIDE .wrap (a sibling, not
+    // a descendant of the zoomed container), so it is never subject to
+    // .wrap's zoom at all — its left/top are plain viewport pixels, exactly
+    // like getBoundingClientRect() on the hovered element. No conversion.
+    const rect = el.getBoundingClientRect();
+    const magRect = magnifier.getBoundingClientRect();
+    const w = magRect.width || 260;
+    const h = magRect.height || 180;
+    const gap = 10;
+    const cx = rect.left + rect.width / 2;
+    const left = Math.min(Math.max(cx - w / 2, 8), window.innerWidth - w - 8);
+    const below = rect.top < h + gap + 20;
+    const top = below ? rect.bottom + gap : rect.top - h - gap;
+    magnifier.classList.toggle('below', below);
+    magnifier.style.left = left + 'px';
+    magnifier.style.top = top + 'px';
+  }
+
+  function showMagnifier(el) {
+    const sym = el.dataset.sym;
+    if (!sym) return;
+    mSym.textContent = sym;
+    mCode.textContent = el.dataset.code || '本方案未编码';
+    mLabel.textContent = el.dataset.label || '';
+    mLabel.style.display = el.dataset.label ? '' : 'none';
+    positionMagnifier(el);
+    magnifier.classList.add('show');
+  }
+
+  function hideMagnifier() {
+    magnifier.classList.remove('show');
+    currentEl = null;
+  }
+
+  document.addEventListener('pointerover', e => {
+    const el = e.target.closest('[data-sym]');
+    if (!el || el === currentEl) return;
+    currentEl = el;
+    showMagnifier(el);
+  });
+
+  document.addEventListener('pointerout', e => {
+    const el = e.target.closest('[data-sym]');
+    if (!el || el !== currentEl) return;
+    if (e.relatedTarget && el.contains(e.relatedTarget)) return;
+    hideMagnifier();
+  });
+
+  window.addEventListener('scroll', hideMagnifier, { passive: true, capture: true });
+</script>
