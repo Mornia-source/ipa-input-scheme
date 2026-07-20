@@ -180,6 +180,7 @@
   .v-code { font-family: var(--mono); font-size: 8px; fill: var(--chip-ink); }
   .v-line { stroke: var(--border); stroke-width: 1.3; fill: none; }
   .v-axis { font-family: var(--sans); font-size: 10.5px; font-weight: 700; fill: var(--ink-dim); }
+  .v-axis-mark { font-family: var(--mono); font-size: 9px; font-weight: 400; fill: var(--chip-ink); }
   .v-dot { fill: var(--accent); }
   .v-cell.dim { opacity: 0.16; }
   .v-cell.hit .v-sym { fill: var(--accent); font-weight: 700; }
@@ -440,9 +441,10 @@
     const Y = r => 58 + (r - 1) * 40;
     const parts = [];
 
-    parts.push(`<text class="v-axis" x="${X(10)}" y="16" text-anchor="middle">前</text>`);
-    parts.push(`<text class="v-axis" x="${X(23)}" y="16" text-anchor="middle">央</text>`);
-    parts.push(`<text class="v-axis" x="${X(34)}" y="16" text-anchor="middle">后</text>`);
+    const fbness = [['前', '`', X(10)], ['央', '-', X(23)], ['后', '=', X(34)]];
+    fbness.forEach(([label, mark, x]) => {
+      parts.push(`<text class="v-axis" x="${x}" y="16" text-anchor="middle">${label}<tspan class="v-axis-mark" dx="3">${esc(mark)}</tspan></text>`);
+    });
 
     const heightRows = {1:'狭', 3:'半狭', 5:'半广', 7:'广'};
     Object.entries(heightRows).forEach(([r, label]) => {
