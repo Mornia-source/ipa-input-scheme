@@ -1,7 +1,7 @@
 ---
 schema:
   schema_id: ipa
-  name: IPA音标
+  name: 樱桃IPA输入法
   version: "0.1"
   author:
     - 用户自定义方案
@@ -12,7 +12,7 @@ schema:
 switches:
   - name: ascii_mode
     reset: 0
-    states: [ IPA, 西文 ]
+    states: [ 樱桃IPA, 西文 ]
 
 engine:
   processors:
@@ -32,7 +32,7 @@ engine:
     - table_translator
 
 speller:
-  alphabet: "!\"&'()+-./012345:;=?EGHLORVY[\\]^`abcdefghijklmnopqrstuvwxyz|~"
+  alphabet: "!\"&'()+-./012345:;=?EGHLNORVY[\\]^`abcdefghijklmnopqrstuvwxyz|~"
   delimiter: " "
   algebra: []
 

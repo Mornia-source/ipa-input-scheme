@@ -39,6 +39,8 @@ q	pq
 q	tq
 ɢ	bq
 ɢ	dq
+ɢ	G
+ɢ	gq
 ʔ	?
 ʔ	th
 ʔ	dh
@@ -60,6 +62,7 @@ n	nd
 ŋ	nk
 ŋ	nj
 ɴ	nq
+ɴ	N
 ʙ	rp
 ʙ	rb
 ʙ	rm
@@ -67,15 +70,18 @@ r	r
 r	rt
 r	rd
 ʀ	rq
+ʀ	R
 ⱱ	vr
 ʌ	vr
 ⱱ	vR
 ⱱ	vV
 ⱱ	vv
+ɾ	rv
 ɾ	rV
 ɺ	rV
 ɾ	rR
 ɽ	rr
+ɹ	rr
 ɸ	sp
 ɸ	sm
 ɸ	sb
@@ -250,6 +256,8 @@ y	y
 ʊ	uu
 ɯ	i=
 ɯ	u=
+ɯ	wu
+ɯ	ww
 ʉ	u-
 u	u
 ɪ	ii
@@ -275,8 +283,8 @@ o	o
 ɞ	(Er
 ɞ	Er-
 ɞ	(E-
-ʌ	E=
 ʌ	av
+ʌ	E=
 ɔ	cr
 ɔ	vr=
 ɔ	E==
