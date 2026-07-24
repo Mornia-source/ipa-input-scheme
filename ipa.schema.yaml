@@ -13,6 +13,14 @@ switches:
   - name: ascii_mode
     reset: 0
     states: [ 樱桃IPA, 西文 ]
+  # 全角/半角是 Rime 里跨方案全局保存的开关（default.yaml 的 switcher.save_options
+  # 里有 full_shape）。如果之前在别的方案里切换过全角模式，这个状态会带进本方案，
+  # 导致候选没选中、直接回车透传原始字母时，打出来的是全角字符（比如 ｉ 而不是 i，
+  # 是完全不同的两个 Unicode 字符，不是字体显示问题）。这里强制每次切到本方案都
+  # 复位成半角，避免被外部状态影响。
+  - name: full_shape
+    reset: 0
+    states: [ 半角, 全角 ]
 
 engine:
   processors:
