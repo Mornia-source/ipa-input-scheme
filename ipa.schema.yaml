@@ -32,7 +32,7 @@ engine:
     - table_translator
 
 speller:
-  alphabet: "!\"&'()+-./012345:;=?EGHLNORVY[\\]^`abcdefghijklmnopqrstuvwxyz|~"
+  alphabet: "!\"&'()+-./012345:;=?AEGHLNORVY[\\]^`abcdefghijklmnopqrstuvwxyz|~"
   delimiter: " "
   algebra: []
 
@@ -50,3 +50,11 @@ translator:
 punctuator:
   half_shape: {}
   full_shape: {}
+
+# 候选框里的字体：Times New Roman 优先，但它本身不是专业音标字体，很多组合附加符号
+# （比如齿音、卷舌性那些叠加在字母上的小符号）它并不收录，缺字形时 Windows 会挑一个
+# 有该字形的字体来救场，很容易救到某个东亚字体上，于是那个符号单占一个"全角"宽度，
+# 看起来又大又不对齐。这里把 SIL 出的两款专业音标字体（覆盖全部IPA含组合符号）设成
+# 后备字体，缺字才会落到它们身上，而不是落到某个不相关的宽字体。
+style:
+  font_face: "Times New Roman,Doulos SIL,Charis SIL,Segoe UI Symbol"
